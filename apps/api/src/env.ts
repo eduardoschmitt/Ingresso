@@ -8,6 +8,8 @@ const envSchema = z.object({
   HOST: z.string().min(1).default('0.0.0.0'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3001),
   DATABASE_URL: z.string().min(1).default('postgres://ingresso:ingresso@localhost:5432/ingresso'),
+  // Temporary hold duration for seat reservations, in whole minutes.
+  HOLD_MINUTES: z.coerce.number().int().min(1).max(1440).default(5),
 });
 
 export type Env = z.infer<typeof envSchema>;

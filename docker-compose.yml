@@ -11,7 +11,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ingresso}
       POSTGRES_DB: ${POSTGRES_DB:-ingresso}
     ports:
-      - '5432:5432'
+      # Host port is configurable: set DB_PORT in `.env` when 5432 is taken
+      # by a local PostgreSQL (see README troubleshooting).
+      - '${DB_PORT:-5432}:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

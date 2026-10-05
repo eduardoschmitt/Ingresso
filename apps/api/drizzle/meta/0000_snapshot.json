@@ -1,0 +1,619 @@
+{
+  "id": "8c4943e5-0f4d-4d9e-9382-40f418800bf2",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.auditoriums": {
+      "name": "auditoriums",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "cinema_id": {
+          "name": "cinema_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "capacity": {
+          "name": "capacity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "auditoriums_cinema_id_cinemas_id_fk": {
+          "name": "auditoriums_cinema_id_cinemas_id_fk",
+          "tableFrom": "auditoriums",
+          "tableTo": "cinemas",
+          "columnsFrom": ["cinema_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "auditoriums_cinema_name_uniq": {
+          "name": "auditoriums_cinema_name_uniq",
+          "nullsNotDistinct": false,
+          "columns": ["cinema_id", "name"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "auditoriums_capacity_check": {
+          "name": "auditoriums_capacity_check",
+          "value": "\"auditoriums\".\"capacity\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.cinemas": {
+      "name": "cinemas",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location": {
+          "name": "location",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "cinemas_name_unique": {
+          "name": "cinemas_name_unique",
+          "nullsNotDistinct": false,
+          "columns": ["name"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.movies": {
+      "name": "movies",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title_pt_br": {
+          "name": "title_pt_br",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "release_year": {
+          "name": "release_year",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duration_minutes": {
+          "name": "duration_minutes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "synopsis": {
+          "name": "synopsis",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "genre": {
+          "name": "genre",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "poster_url": {
+          "name": "poster_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "movies_title_release_year_uniq": {
+          "name": "movies_title_release_year_uniq",
+          "nullsNotDistinct": false,
+          "columns": ["title", "release_year"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "movies_duration_minutes_check": {
+          "name": "movies_duration_minutes_check",
+          "value": "\"movies\".\"duration_minutes\" IS NULL OR \"movies\".\"duration_minutes\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.reservation_seats": {
+      "name": "reservation_seats",
+      "schema": "",
+      "columns": {
+        "reservation_id": {
+          "name": "reservation_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "seat_id": {
+          "name": "seat_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "screening_id": {
+          "name": "screening_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "auditorium_id": {
+          "name": "auditorium_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "reservation_seats_screening_seat_idx": {
+          "name": "reservation_seats_screening_seat_idx",
+          "columns": [
+            {
+              "expression": "screening_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "seat_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "reservation_seats_reservation_fk": {
+          "name": "reservation_seats_reservation_fk",
+          "tableFrom": "reservation_seats",
+          "tableTo": "reservations",
+          "columnsFrom": ["reservation_id", "screening_id"],
+          "columnsTo": ["id", "screening_id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "reservation_seats_seat_fk": {
+          "name": "reservation_seats_seat_fk",
+          "tableFrom": "reservation_seats",
+          "tableTo": "seats",
+          "columnsFrom": ["auditorium_id", "seat_id"],
+          "columnsTo": ["auditorium_id", "id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "reservation_seats_screening_fk": {
+          "name": "reservation_seats_screening_fk",
+          "tableFrom": "reservation_seats",
+          "tableTo": "screenings",
+          "columnsFrom": ["auditorium_id", "screening_id"],
+          "columnsTo": ["auditorium_id", "id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "reservation_seats_pkey": {
+          "name": "reservation_seats_pkey",
+          "columns": ["reservation_id", "seat_id"]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.reservations": {
+      "name": "reservations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "screening_id": {
+          "name": "screening_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "reservation_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'HELD'"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "request_hash": {
+          "name": "request_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "confirmed_at": {
+          "name": "confirmed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cancelled_at": {
+          "name": "cancelled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "reservations_screening_status_idx": {
+          "name": "reservations_screening_status_idx",
+          "columns": [
+            {
+              "expression": "screening_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "reservations_screening_id_screenings_id_fk": {
+          "name": "reservations_screening_id_screenings_id_fk",
+          "tableFrom": "reservations",
+          "tableTo": "screenings",
+          "columnsFrom": ["screening_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "reservations_idempotency_key_unique": {
+          "name": "reservations_idempotency_key_unique",
+          "nullsNotDistinct": false,
+          "columns": ["idempotency_key"]
+        },
+        "reservations_id_screening_uniq": {
+          "name": "reservations_id_screening_uniq",
+          "nullsNotDistinct": false,
+          "columns": ["id", "screening_id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.screenings": {
+      "name": "screenings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "movie_id": {
+          "name": "movie_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "auditorium_id": {
+          "name": "auditorium_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "starts_at": {
+          "name": "starts_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ends_at": {
+          "name": "ends_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "price_cents": {
+          "name": "price_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "screenings_auditorium_starts_idx": {
+          "name": "screenings_auditorium_starts_idx",
+          "columns": [
+            {
+              "expression": "auditorium_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "starts_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "screenings_movie_starts_idx": {
+          "name": "screenings_movie_starts_idx",
+          "columns": [
+            {
+              "expression": "movie_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "starts_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "screenings_movie_id_movies_id_fk": {
+          "name": "screenings_movie_id_movies_id_fk",
+          "tableFrom": "screenings",
+          "tableTo": "movies",
+          "columnsFrom": ["movie_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "screenings_auditorium_id_auditoriums_id_fk": {
+          "name": "screenings_auditorium_id_auditoriums_id_fk",
+          "tableFrom": "screenings",
+          "tableTo": "auditoriums",
+          "columnsFrom": ["auditorium_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "screenings_auditorium_id_uniq": {
+          "name": "screenings_auditorium_id_uniq",
+          "nullsNotDistinct": false,
+          "columns": ["auditorium_id", "id"]
+        },
+        "screenings_auditorium_starts_uniq": {
+          "name": "screenings_auditorium_starts_uniq",
+          "nullsNotDistinct": false,
+          "columns": ["auditorium_id", "starts_at"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "screenings_ends_after_starts_check": {
+          "name": "screenings_ends_after_starts_check",
+          "value": "\"screenings\".\"ends_at\" > \"screenings\".\"starts_at\""
+        },
+        "screenings_price_cents_check": {
+          "name": "screenings_price_cents_check",
+          "value": "\"screenings\".\"price_cents\" >= 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.seats": {
+      "name": "seats",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "auditorium_id": {
+          "name": "auditorium_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "row_label": {
+          "name": "row_label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "seat_number": {
+          "name": "seat_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "seats_auditorium_id_auditoriums_id_fk": {
+          "name": "seats_auditorium_id_auditoriums_id_fk",
+          "tableFrom": "seats",
+          "tableTo": "auditoriums",
+          "columnsFrom": ["auditorium_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "seats_auditorium_row_number_uniq": {
+          "name": "seats_auditorium_row_number_uniq",
+          "nullsNotDistinct": false,
+          "columns": ["auditorium_id", "row_label", "seat_number"]
+        },
+        "seats_auditorium_id_uniq": {
+          "name": "seats_auditorium_id_uniq",
+          "nullsNotDistinct": false,
+          "columns": ["auditorium_id", "id"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "seats_seat_number_check": {
+          "name": "seats_seat_number_check",
+          "value": "\"seats\".\"seat_number\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.reservation_status": {
+      "name": "reservation_status",
+      "schema": "public",
+      "values": ["HELD", "CONFIRMED", "EXPIRED", "CANCELLED"]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
