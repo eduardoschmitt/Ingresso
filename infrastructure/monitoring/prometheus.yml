@@ -1,0 +1,18 @@
+# Ingresso Phase 2 — Prometheus scrape config.
+# The API runs on the host (pnpm dev/start), not in Compose, so targets use
+# host.docker.internal (works on Docker Desktop Windows/macOS; Linux gets the
+# host-gateway mapping from docker-compose.yml). Both the dev instance (3001)
+# and the load-test instance (3002) are scraped; either may be down outside
+# experiments — that is expected and documented, not an alert condition.
+
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'ingresso-api'
+    static_configs:
+      - targets:
+          - 'host.docker.internal:3001'
+          - 'host.docker.internal:3002'
+    metrics_path: '/metrics'

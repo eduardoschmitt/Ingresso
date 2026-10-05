@@ -12,6 +12,7 @@ import {
   type ReservationStatus,
 } from '../db/schema.js';
 import { badRequest, conflict, notFound } from '../http/errors.js';
+import type { ReservationObserver } from '../observability/metrics.js';
 
 // Transactional seat holds (Phase 1).
 //
@@ -98,10 +99,17 @@ async function loadSeatIds(tx: DbTx, reservationId: number): Promise<number[]> {
   return rows.map((r) => r.seatId);
 }
 
+export type ReservationServiceOptions = {
+  holdMinutes?: number;
+  // Optional instrumentation hook (default: none). Observes lock acquisition
+  // wall time only; business logic is identical with or without it.
+  observe?: ReservationObserver;
+};
+
 export async function createReservation(
   db: Db,
   input: unknown,
-  options?: { holdMinutes?: number },
+  options?: ReservationServiceOptions,
 ): Promise<ReservationResult> {
   const parsed = createReservationSchema.parse(input);
   const holdMinutes = options?.holdMinutes ?? 5;
@@ -112,12 +120,14 @@ export async function createReservation(
 
   return db.transaction(async (tx) => {
     // 1. Screening first in lock order; also proves the screening exists.
+    const lockStartedAt = performance.now();
     const screeningRows = await tx
       .select()
       .from(screenings)
       .where(eq(screenings.id, parsed.screeningId))
       .for('update')
       .limit(1);
+    options?.observe?.lockWait('create', (performance.now() - lockStartedAt) / 1000);
     const screening = screeningRows[0];
     if (screening === undefined) throw notFound('screening');
 
@@ -225,7 +235,11 @@ export async function createReservation(
   });
 }
 
-export async function getReservation(db: Db, id: number): Promise<ReservationDto> {
+export async function getReservation(
+  db: Db,
+  id: number,
+  observe?: ReservationObserver,
+): Promise<ReservationDto> {
   return db.transaction(async (tx) => {
     const current = await tx
       .select()
@@ -236,12 +250,14 @@ export async function getReservation(db: Db, id: number): Promise<ReservationDto
     if (current === undefined) throw notFound('reservation');
 
     // Lock ordering: screening first, reservation second.
+    const readLockStartedAt = performance.now();
     const screeningRows = await tx
       .select({ id: screenings.id })
       .from(screenings)
       .where(eq(screenings.id, current.screeningId))
       .for('update')
       .limit(1);
+    observe?.lockWait('read', (performance.now() - readLockStartedAt) / 1000);
     if (screeningRows.length === 0) throw notFound('screening');
     await expireOverdueHolds(tx, current.screeningId);
 
@@ -257,7 +273,11 @@ export async function getReservation(db: Db, id: number): Promise<ReservationDto
   });
 }
 
-export async function cancelReservation(db: Db, id: number): Promise<ReservationDto> {
+export async function cancelReservation(
+  db: Db,
+  id: number,
+  observe?: ReservationObserver,
+): Promise<ReservationDto> {
   return db.transaction(async (tx) => {
     const current = await tx
       .select()
@@ -268,12 +288,14 @@ export async function cancelReservation(db: Db, id: number): Promise<Reservation
     if (current === undefined) throw notFound('reservation');
 
     // Lock ordering: screening first, reservation second.
+    const cancelLockStartedAt = performance.now();
     const screeningRows = await tx
       .select({ id: screenings.id })
       .from(screenings)
       .where(eq(screenings.id, current.screeningId))
       .for('update')
       .limit(1);
+    observe?.lockWait('cancel', (performance.now() - cancelLockStartedAt) / 1000);
     if (screeningRows.length === 0) throw notFound('screening');
     await expireOverdueHolds(tx, current.screeningId);
 

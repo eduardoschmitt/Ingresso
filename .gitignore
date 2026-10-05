@@ -18,6 +18,10 @@ apps/*/.env.*
 # Logs
 *.log
 
+# Load-test artifacts (regenerated per run; target.json holds run-local ids)
+tests/load/target.json
+tests/load/results/
+
 # OS artifacts
 .DS_Store
 Thumbs.db
