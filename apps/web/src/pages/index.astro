@@ -1,0 +1,53 @@
+---
+import ApiStatus from '../components/ApiStatus';
+import '../styles/global.css';
+
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Ingresso — plataforma fictícia de ingressos de cinema e estudo de engenharia de software."
+    />
+    <title>Ingresso — cinema fictício</title>
+  </head>
+  <body class="scanlines font-sans antialiased">
+    <div class="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-6 py-10">
+      <header class="flex items-center justify-between border-b border-white/10 pb-6">
+        <p class="font-display text-xl font-bold tracking-[0.3em] uppercase">Ingresso</p>
+        <p class="font-mono text-xs text-white/50 uppercase">fase 0 · fundação</p>
+      </header>
+
+      <main class="flex flex-1 flex-col justify-center py-16">
+        <p class="font-mono text-sm text-white/50">● REC — plataforma fictícia de cinema</p>
+        <h1 class="font-display mt-4 text-6xl font-black tracking-tight uppercase">
+          Ingresso<span class="text-ingresso">.</span>
+        </h1>
+        <p class="mt-6 max-w-xl text-lg leading-relaxed text-white/70">
+          Bilheteria fictícia para estudar concorrência, escalabilidade e resiliência. Nenhum
+          ingresso real é vendido aqui.
+        </p>
+        <div class="mt-10 flex flex-col gap-4 border border-white/10 bg-white/[0.02] p-6">
+          <ApiStatus client:load />
+          <p class="font-mono text-sm text-white/50">
+            Verificação direta:{' '}
+            <a class="text-white underline underline-offset-4" href={`${apiUrl}/health`}>
+              {apiUrl}/health
+            </a>
+          </p>
+        </div>
+      </main>
+
+      <footer class="border-t border-white/10 pt-6">
+        <p class="font-mono text-xs text-white/40">
+          Ingresso — estudo de caso de engenharia. Sem pagamentos reais, sem inventário real.
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

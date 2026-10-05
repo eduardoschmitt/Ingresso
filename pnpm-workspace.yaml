@@ -1,0 +1,9 @@
+packages:
+  - 'apps/*'
+
+# Dependency postinstall scripts are blocked by default (strictDepBuilds).
+# These build steps are reviewed and required: esbuild (Astro/Vite) and
+# sharp (Astro images).
+allowBuilds:
+  esbuild: true
+  sharp: true

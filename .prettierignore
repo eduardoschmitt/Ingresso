@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.astro/
+coverage/
+pnpm-lock.yaml
+# No Prettier parser for dotenv files.
+.env.example
+# Pre-existing prose, kept byte-identical (only the project name was fixed).
+AGENTS.md

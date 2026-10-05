@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ingresso Phase 0 — foundational tokens and CRT-inspired base styles. */
+
+:root {
+  --ingresso-bg: #0b0b10;
+  --ingresso-ink: #e8e6df;
+  --ingresso-red: #e10600;
+  --ingresso-red-dim: #8f0600;
+  --ingresso-amber: #ffb454;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--ingresso-bg);
+  color: var(--ingresso-ink);
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: var(--ingresso-red);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ingresso-amber);
+  outline-offset: 2px;
+}
+
+/* Subtle CRT scanlines overlay. Static by default: no animation,
+   so there is nothing to disable for reduced-motion users. */
+.scanlines {
+  position: relative;
+}
+
+.scanlines::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgb(0 0 0 / 0.22) 3px,
+    rgb(0 0 0 / 0.22) 4px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
