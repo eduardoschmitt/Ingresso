@@ -14,14 +14,14 @@ const span = movies.length > 0 ? `${Math.min(...years)}–${Math.max(...years)}`
 ---
 
 <BaseLayout title="Filmes em cartaz" description="Catálogo de filmes — Ingresso, cinema fictício.">
-  <p class="font-mono text-sm text-white/50">● REC — catálogo real, dados da API</p>
+  <p class="font-mono text-sm text-white/50">● REC</p>
   <h1 class="font-display mt-4 text-5xl font-black uppercase tracking-tight sm:text-6xl">
     Em cartaz<span class="text-ingresso">.</span>
   </h1>
   <p class="mt-4 max-w-xl text-lg leading-relaxed text-white/70">
     {movies.length}
-    {movies.length === 1 ? 'filme' : 'filmes'} · {span}. Escolha um filme para ver detalhes. Sessões
-    e assentos chegam no Milestone 2.
+    {movies.length === 1 ? 'filme' : 'filmes'} · {span}. Escolha um filme para ver detalhes, sessões
+    e assentos.
   </p>
 
   {

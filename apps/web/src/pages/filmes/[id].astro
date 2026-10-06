@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import PosterFallback from '../../components/PosterFallback.astro';
+import MoviePoster from '../../components/MoviePoster.astro';
 import ScreeningPicker from '../../components/ScreeningPicker';
 import { listAllMovies } from '../../lib/api';
 
@@ -35,7 +35,7 @@ function formatDuration(minutes: number | null): string {
   </a>
 
   <article class="mt-6 grid grid-cols-1 gap-8 md:grid-cols-[280px_1fr]">
-    <PosterFallback movie={movie} />
+    <MoviePoster movie={movie} />
     <div>
       <p class="font-mono text-sm text-white/50">
         {movie.releaseYear}

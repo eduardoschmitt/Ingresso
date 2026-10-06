@@ -1,8 +1,7 @@
 ---
 import type { MovieDto } from '@ingresso/shared';
 
-import PosterFallback from './PosterFallback.astro';
-import { posterUrl } from '../lib/posters.js';
+import MoviePoster from './MoviePoster.astro';
 
 type Props = {
   movie: MovieDto;
@@ -10,8 +9,6 @@ type Props = {
 
 const { movie } = Astro.props;
 const displayTitle = movie.titlePtBr ?? movie.title;
-// Build-time only: missing file (or incomplete TMDB attribution) → fallback.
-const poster = posterUrl(movie.id);
 ---
 
 <a
@@ -19,21 +16,7 @@ const poster = posterUrl(movie.id);
   class="group block border border-white/10 bg-white/[0.02] transition-all duration-200 hover:-translate-y-1 hover:border-ingresso/60 hover:shadow-[0_8px_30px_rgb(225_6_0/0.15)] focus-visible:border-signal"
   aria-label={`Ver detalhes de ${displayTitle}`}
 >
-  {
-    poster !== null ? (
-      <img
-        src={poster}
-        alt={`Cartaz de ${displayTitle}`}
-        width="500"
-        height="750"
-        loading="lazy"
-        decoding="async"
-        class="aspect-[2/3] w-full object-cover"
-      />
-    ) : (
-      <PosterFallback movie={movie} />
-    )
-  }
+  <MoviePoster movie={movie} />
   <div class="p-4">
     <h2
       class="font-display text-lg font-bold leading-snug tracking-tight transition-colors group-hover:text-white"

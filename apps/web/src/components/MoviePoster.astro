@@ -1,0 +1,33 @@
+---
+import type { MovieDto } from '@ingresso/shared';
+
+import PosterFallback from './PosterFallback.astro';
+import { posterUrl } from '../lib/posters.js';
+
+// Single poster renderer (real image or typographic fallback), shared by the
+// catalog card and the movie detail page. Existence is resolved at build
+// time; missing file (or incomplete TMDB attribution) → fallback.
+type Props = {
+  movie: MovieDto;
+};
+
+const { movie } = Astro.props;
+const displayTitle = movie.titlePtBr ?? movie.title;
+const poster = posterUrl(movie.id);
+---
+
+{
+  poster !== null ? (
+    <img
+      src={poster}
+      alt={`Cartaz de ${displayTitle}`}
+      width="500"
+      height="750"
+      loading="lazy"
+      decoding="async"
+      class="aspect-[2/3] w-full object-cover"
+    />
+  ) : (
+    <PosterFallback movie={movie} />
+  )
+}
