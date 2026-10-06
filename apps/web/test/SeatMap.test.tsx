@@ -240,14 +240,15 @@ describe('SeatMap island', () => {
     expect(screen.getByText(/Nenhum assento selecionado/)).toBeDefined();
   });
 
-  it('continues to an explicit M4 notice without creating reservations', async () => {
+  it('opens the reservation flow without creating reservations', async () => {
     const user = userEvent.setup();
     const spy = apiOk(SCREENING, seatsFixture());
     render(<SeatMap screeningId={7} apiUrl="http://test" />);
 
     await user.click(await screen.findByRole('button', { name: /Fileira A, assento 1/ }));
     await user.click(screen.getByRole('button', { name: 'Continuar' }));
-    expect(await screen.findByText(/Reserva chega no Milestone 4/)).toBeDefined();
+    // ReservationFlow mounted in its pre-creation state; no POST issued.
+    expect(await screen.findByRole('button', { name: 'Reservar assentos' })).toBeDefined();
     const urls = spy.mock.calls.map((call) => String(call[0]));
     expect(urls.some((u) => u.includes('/reservations'))).toBe(false);
   });

@@ -42,6 +42,19 @@ describe('GET /health', () => {
         headers: { origin: 'http://evil.example' },
       });
       expect(denied.headers['access-control-allow-origin']).toBeUndefined();
+
+      // Preflight must admit every verb the frontend uses (notably DELETE).
+      for (const method of ['POST', 'DELETE']) {
+        const preflight = await app.inject({
+          method: 'OPTIONS',
+          url: '/reservations/1',
+          headers: {
+            origin: 'http://localhost:4321',
+            'access-control-request-method': method,
+          },
+        });
+        expect(preflight.headers['access-control-allow-methods'] ?? '').toContain(method);
+      }
     } finally {
       await app.close();
     }

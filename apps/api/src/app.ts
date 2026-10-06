@@ -44,10 +44,15 @@ export function buildApp(deps: AppDeps = {}): FastifyInstance {
   // Restricted CORS so browser islands (web dev/preview origins) can read
   // the API. No wildcard: only explicitly configured origins are reflected.
   // Queued before route registration; Fastify resolves it at ready/listen.
+  // NOTE: methods must list every verb the frontend uses — the plugin does
+  // not reliably default to DELETE, and browsers preflight it.
   const allowedOrigins = env.CORS_ORIGIN.split(',')
     .map((origin) => origin.trim())
     .filter((origin) => origin.length > 0);
-  void app.register(cors, { origin: allowedOrigins });
+  void app.register(cors, {
+    origin: allowedOrigins,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  });
 
   registerErrorHandler(app);
 

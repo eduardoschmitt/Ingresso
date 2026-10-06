@@ -22,6 +22,10 @@ apps/*/.env.*
 tests/load/target.json
 tests/load/results/
 
+# Playwright artifacts (traces, screenshots, reports per failed run)
+test-results/
+playwright-report/
+
 # TMDB local cache (terms: cache <6 months, never redistribute via git).
 # Renewed with `pnpm --filter @ingresso/web posters:sync [--force]`.
 apps/web/public/posters/*.webp

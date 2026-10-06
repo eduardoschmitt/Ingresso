@@ -1,6 +1,13 @@
 import { z } from 'zod';
 
-import type { CinemaDto, MovieDto, Paged, ScreeningDto, SeatMapDto } from '@ingresso/shared';
+import type {
+  CinemaDto,
+  MovieDto,
+  Paged,
+  ReservationDto,
+  ScreeningDto,
+  SeatMapDto,
+} from '@ingresso/shared';
 
 // Runtime-safe HTTP client for the catalog API.
 //
@@ -84,19 +91,42 @@ export class ApiError extends Error {
     public endpoint: string,
     public status: number | null,
     message: string,
+    // Machine-readable backend code (e.g. seat_unavailable,
+    // idempotency_conflict), when the response carried one. Absent for
+    // transport failures — callers must not treat those as business outcomes.
+    public code: string | null = null,
   ) {
     super(message);
   }
 }
 
+// Hard timeout so no operation hangs forever leaving the UI frozen with
+// zero feedback. Caller-initiated aborts (unmount/refresh) stay silent;
+// TIMEOUT aborts surface as ApiError so callers show retry UI.
+const REQUEST_TIMEOUT_MS = 15_000;
+
+function timedSignal(init?: RequestInit): AbortSignal {
+  const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  const caller = init?.signal;
+  if (caller === undefined || caller === null) return timeout;
+  return AbortSignal.any([caller, timeout]);
+}
+
+function throwTransportError(endpoint: string, init: RequestInit | undefined, err: unknown): never {
+  if (err instanceof DOMException && err.name === 'AbortError' && init?.signal?.aborted !== true) {
+    throw new ApiError(endpoint, null, `API timeout at ${endpoint}`);
+  }
+  if (err instanceof DOMException && err.name === 'AbortError') throw err;
+  throw new ApiError(endpoint, null, `Catalog API unreachable at ${endpoint}: ${String(err)}`);
+}
+
 async function fetchJson(endpoint: string, init?: RequestInit): Promise<unknown> {
+  const signal = timedSignal(init);
   let response: Response;
   try {
-    response = await fetch(endpoint, init);
+    response = await fetch(endpoint, { ...init, signal });
   } catch (err) {
-    // Cancellation is not a failure: let callers detect AbortError as-is.
-    if (err instanceof DOMException && err.name === 'AbortError') throw err;
-    throw new ApiError(endpoint, null, `Catalog API unreachable at ${endpoint}: ${String(err)}`);
+    throwTransportError(endpoint, init, err);
   }
   if (!response.ok) {
     throw new ApiError(endpoint, response.status, `Catalog API ${response.status} at ${endpoint}`);
@@ -172,10 +202,9 @@ export async function getScreening(
   const endpoint = `${baseUrl}/screenings/${screeningId}`;
   let response: Response;
   try {
-    response = await fetch(endpoint, init);
+    response = await fetch(endpoint, { ...init, signal: timedSignal(init) });
   } catch (err) {
-    if (err instanceof DOMException && err.name === 'AbortError') throw err;
-    throw new ApiError(endpoint, null, `Catalog API unreachable at ${endpoint}: ${String(err)}`);
+    throwTransportError(endpoint, init, err);
   }
   if (response.status === 404) return null;
   if (!response.ok) {
@@ -191,4 +220,99 @@ export async function getSeatMap(
 ): Promise<SeatMapDto> {
   const endpoint = `${baseUrl}/screenings/${screeningId}/seats`;
   return parseWith(seatMapSchema, endpoint, await fetchJson(endpoint, init));
+}
+
+const reservationSchema = z.object({
+  id: z.number(),
+  screeningId: z.number(),
+  seatIds: z.array(z.number()),
+  status: z.enum(['HELD', 'CONFIRMED', 'EXPIRED', 'CANCELLED']),
+  expiresAt: z.string(),
+  idempotencyKey: z.string(),
+});
+
+assertContract<Equals<z.infer<typeof reservationSchema>, ReservationDto>>(true);
+
+const reservationResultSchema = reservationSchema.extend({
+  created: z.boolean(),
+});
+
+export type ReservationResult = z.infer<typeof reservationResultSchema>;
+
+const errorBodySchema = z.object({
+  error: z.object({
+    code: z.string(),
+    message: z.string(),
+  }),
+});
+
+// Reads the machine-readable backend code ({ error: { code } }) so callers
+// can distinguish conflict subtypes. Never throws for a missing code —
+// transport failures simply carry code null.
+async function throwApiError(endpoint: string, response: Response): Promise<never> {
+  let code: string | null = null;
+  try {
+    const body = errorBodySchema.safeParse(await response.json());
+    if (body.success) code = body.data.error.code;
+  } catch {
+    // Non-JSON error body: keep the status-only error below.
+  }
+  throw new ApiError(endpoint, response.status, `API ${response.status} at ${endpoint}`, code);
+}
+
+async function requestJson(
+  endpoint: string,
+  init: RequestInit,
+): Promise<{ response: Response; payload: unknown }> {
+  let response: Response;
+  try {
+    response = await fetch(endpoint, { ...init, signal: timedSignal(init) });
+  } catch (err) {
+    throwTransportError(endpoint, init, err);
+  }
+  if (!response.ok) {
+    await throwApiError(endpoint, response);
+  }
+  return { response, payload: (await response.json()) as unknown };
+}
+
+export type CreateReservationInput = {
+  screeningId: number;
+  seatIds: number[];
+  idempotencyKey: string;
+};
+
+export async function createReservation(
+  baseUrl: string,
+  input: CreateReservationInput,
+  init?: RequestInit,
+): Promise<ReservationResult> {
+  const endpoint = `${baseUrl}/reservations`;
+  const { payload } = await requestJson(endpoint, {
+    ...init,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Idempotency-Key': input.idempotencyKey },
+    body: JSON.stringify({ screeningId: input.screeningId, seatIds: input.seatIds }),
+  });
+  return parseWith(reservationResultSchema, endpoint, payload);
+}
+
+export async function fetchReservation(
+  baseUrl: string,
+  reservationId: number,
+  init?: RequestInit,
+): Promise<ReservationDto> {
+  const endpoint = `${baseUrl}/reservations/${reservationId}`;
+  const { payload } = await requestJson(endpoint, { ...init, method: 'GET' });
+  return parseWith(reservationSchema, endpoint, payload);
+}
+
+export async function cancelReservation(
+  baseUrl: string,
+  reservationId: number,
+  init?: RequestInit,
+): Promise<ReservationDto> {
+  const endpoint = `${baseUrl}/reservations/${reservationId}`;
+  const { payload } = await requestJson(endpoint, { ...init, method: 'DELETE' });
+  return parseWith(reservationSchema, endpoint, payload);
 }

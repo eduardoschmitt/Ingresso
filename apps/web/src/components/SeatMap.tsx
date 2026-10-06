@@ -4,6 +4,7 @@ import type { ScreeningDto, SeatDto } from '@ingresso/shared';
 
 import { ApiError, getScreening, getSeatMap } from '../lib/api.js';
 import { formatPrice, formatStartTime } from '../lib/format.js';
+import ReservationFlow from './ReservationFlow.js';
 
 type Props = {
   screeningId: number;
@@ -41,7 +42,7 @@ export default function SeatMap({ screeningId, apiUrl }: Props) {
   const [selected, setSelected] = useState<number[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [showM4, setShowM4] = useState(false);
+  const [ordering, setOrdering] = useState(false);
 
   // Only the latest request may mutate state — success, error, and
   // completion paths all compare generations (adjustment 4).
@@ -213,7 +214,9 @@ export default function SeatMap({ screeningId, apiUrl }: Props) {
   const sessionEnded = new Date(screening.endsAt).getTime() < Date.now();
 
   const toggle = (seat: SeatDto) => {
-    if (seat.status !== 'available' || sessionEnded) return;
+    // Frozen while ordering: the flow owns its immutable copy; edits resume
+    // after going back (which remounts it with a fresh idempotency key).
+    if (seat.status !== 'available' || sessionEnded || ordering) return;
     setSelection((current) =>
       current.includes(seat.id) ? current.filter((id) => id !== seat.id) : [...current, seat.id],
     );
@@ -255,7 +258,7 @@ export default function SeatMap({ screeningId, apiUrl }: Props) {
             </span>
             {seats.map((seat) => {
               const isSelected = selectedSet.has(seat.id);
-              const disabled = seat.status !== 'available' || sessionEnded;
+              const disabled = seat.status !== 'available' || sessionEnded || ordering;
               return (
                 <button
                   key={seat.id}
@@ -323,8 +326,11 @@ export default function SeatMap({ screeningId, apiUrl }: Props) {
           </button>
           <button
             type="button"
-            disabled={selected.length === 0}
-            onClick={() => setShowM4(true)}
+            disabled={selected.length === 0 || ordering}
+            onClick={() => {
+              setNotice(null);
+              setOrdering(true);
+            }}
             className="border border-ingresso bg-ingresso/10 px-4 py-2 font-mono text-xs uppercase tracking-widest transition-colors hover:bg-ingresso/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Continuar
@@ -338,14 +344,20 @@ export default function SeatMap({ screeningId, apiUrl }: Props) {
         </p>
       )}
 
-      {showM4 && (
-        <div
-          role="note"
-          className="mt-4 border border-signal/30 bg-signal/5 p-4 text-sm text-white/75"
-        >
-          Reserva chega no Milestone 4. Nenhum assento foi reservado e nenhuma compra foi concluída
-          — a seleção acima é local e temporária.
-        </div>
+      {ordering && (
+        <ReservationFlow
+          apiUrl={apiUrl}
+          screening={screening}
+          seats={snapshot.seats}
+          initialSeatIds={selected}
+          onReconcile={() => void load(true)}
+          onClose={() => setOrdering(false)}
+        />
+      )}
+      {ordering && (
+        <p role="note" className="mt-3 font-mono text-xs text-white/50">
+          Seleção congelada enquanto a reserva está aberta — feche para alterar os assentos.
+        </p>
       )}
 
       <p className="mt-4 font-mono text-[11px] leading-relaxed text-white/40">
