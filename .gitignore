@@ -22,6 +22,11 @@ apps/*/.env.*
 tests/load/target.json
 tests/load/results/
 
+# TMDB local cache (terms: cache <6 months, never redistribute via git).
+# Renewed with `pnpm --filter @ingresso/web posters:sync [--force]`.
+apps/web/public/posters/*.webp
+apps/web/public/tmdb-logo.svg
+
 # OS artifacts
 .DS_Store
 Thumbs.db

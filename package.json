@@ -11,7 +11,7 @@
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm --filter @ingresso/api test",
+    "test": "pnpm -r test",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

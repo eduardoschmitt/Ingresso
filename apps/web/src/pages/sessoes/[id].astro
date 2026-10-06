@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import SeatMap from '../../components/SeatMap';
 import { listAllScreenings } from '../../lib/api';
 
 export const prerender = true;
@@ -19,6 +20,7 @@ export async function getStaticPaths() {
 }
 
 const { screeningId } = Astro.props;
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
 ---
 
 <BaseLayout title={`Sessão ${screeningId}`}>
@@ -31,14 +33,13 @@ const { screeningId } = Astro.props;
 
   <section aria-labelledby="sala-title" class="py-10">
     <p class="font-mono text-xs uppercase tracking-widest text-white/40">
-      Sessão {screeningId} · em construção
+      Sessão {screeningId} · disponibilidade ao vivo
     </p>
     <h1 id="sala-title" class="font-display mt-4 text-4xl font-black uppercase sm:text-5xl">
       Assentos<span class="text-ingresso">.</span>
     </h1>
-    <p class="mt-4 max-w-xl text-white/70">
-      O mapa de assentos interativo chega no Milestone 3, carregando disponibilidade direto da API
-      em tempo real. Nenhum dado mutável foi pré-renderizado nesta página.
-    </p>
+    <div class="mt-8">
+      <SeatMap client:load screeningId={screeningId} apiUrl={apiUrl} />
+    </div>
   </section>
 </BaseLayout>

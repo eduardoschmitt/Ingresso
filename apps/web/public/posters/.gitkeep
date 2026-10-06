@@ -1,0 +1,3 @@
+TMDB poster cache lives here (local only, gitignored, never committed).
+Renew: pnpm --filter @ingresso/web posters:sync [--force]
+Remove: delete *.webp in this directory (fallback renders automatically).

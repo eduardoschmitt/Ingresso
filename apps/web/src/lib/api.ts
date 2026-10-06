@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { CinemaDto, MovieDto, Paged, ScreeningDto } from '@ingresso/shared';
+import type { CinemaDto, MovieDto, Paged, ScreeningDto, SeatMapDto } from '@ingresso/shared';
 
 // Runtime-safe HTTP client for the catalog API.
 //
@@ -56,6 +56,20 @@ const screeningSchema = z.object({
 
 assertContract<Equals<z.infer<typeof screeningSchema>, ScreeningDto>>(true);
 
+const seatSchema = z.object({
+  id: z.number(),
+  row: z.string(),
+  number: z.number(),
+  status: z.enum(['available', 'held', 'sold']),
+});
+
+const seatMapSchema = z.object({
+  screeningId: z.number(),
+  seats: z.array(seatSchema),
+});
+
+assertContract<Equals<z.infer<typeof seatMapSchema>, SeatMapDto>>(true);
+
 function pagedSchema<T>(item: z.ZodType<T>) {
   return z.object({
     data: z.array(item),
@@ -75,11 +89,13 @@ export class ApiError extends Error {
   }
 }
 
-async function fetchJson(endpoint: string): Promise<unknown> {
+async function fetchJson(endpoint: string, init?: RequestInit): Promise<unknown> {
   let response: Response;
   try {
-    response = await fetch(endpoint);
+    response = await fetch(endpoint, init);
   } catch (err) {
+    // Cancellation is not a failure: let callers detect AbortError as-is.
+    if (err instanceof DOMException && err.name === 'AbortError') throw err;
     throw new ApiError(endpoint, null, `Catalog API unreachable at ${endpoint}: ${String(err)}`);
   }
   if (!response.ok) {
@@ -144,4 +160,35 @@ export async function listAllScreenings(
   filter: ScreeningFilter = {},
 ): Promise<ScreeningDto[]> {
   return listAllPaged(baseUrl, '/screenings', filter, pagedSchema(screeningSchema));
+}
+
+// Returns null on 404 (unknown screening); throws ApiError otherwise.
+// Used by the runtime island; static shells never fetch availability.
+export async function getScreening(
+  baseUrl: string,
+  screeningId: number,
+  init?: RequestInit,
+): Promise<ScreeningDto | null> {
+  const endpoint = `${baseUrl}/screenings/${screeningId}`;
+  let response: Response;
+  try {
+    response = await fetch(endpoint, init);
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') throw err;
+    throw new ApiError(endpoint, null, `Catalog API unreachable at ${endpoint}: ${String(err)}`);
+  }
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    throw new ApiError(endpoint, response.status, `Catalog API ${response.status} at ${endpoint}`);
+  }
+  return parseWith(screeningSchema, endpoint, await response.json());
+}
+
+export async function getSeatMap(
+  baseUrl: string,
+  screeningId: number,
+  init?: RequestInit,
+): Promise<SeatMapDto> {
+  const endpoint = `${baseUrl}/screenings/${screeningId}/seats`;
+  return parseWith(seatMapSchema, endpoint, await fetchJson(endpoint, init));
 }

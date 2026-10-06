@@ -6,5 +6,5 @@
     "baseUrl": ".",
     "types": ["astro/client", "node"]
   },
-  "include": ["src", "astro.config.mjs"]
+  "include": ["src", "test", "scripts", "astro.config.mjs", "vitest.config.ts"]
 }

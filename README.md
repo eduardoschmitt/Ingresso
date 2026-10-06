@@ -62,12 +62,12 @@ pnpm dev
 
 **Serviços locais:**
 
-| Serviço | Endereço |
-|---|---|
-| Frontend | http://localhost:4321 |
-| API | http://localhost:3001 |
+| Serviço    | Endereço              |
+| ---------- | --------------------- |
+| Frontend   | http://localhost:4321 |
+| API        | http://localhost:3001 |
 | Prometheus | http://localhost:9090 |
-| Grafana | http://localhost:3000 |
+| Grafana    | http://localhost:3000 |
 
 ### Build do frontend
 
@@ -79,6 +79,26 @@ pnpm --filter @ingresso/web preview
 ```
 
 Alterações no catálogo ou nas rotas estáticas de sessões exigem um novo build.
+
+### Pôsteres (TMDB, cache local opcional)
+
+Cartazes reais vêm da API oficial do TMDB, sob os termos deles: uso
+não-comercial com chave pessoal, atribuição obrigatória (logo aprovado +
+aviso textual) e cache local de no máximo 6 meses. As imagens **nunca são
+commitadas** (não redistribuir via git); sem elas, o fallback tipográfico
+renderiza automaticamente.
+
+```bash
+# 1. Coloque sua chave pessoal em apps/web/.env (gitignored, nunca compartilhe):
+# TMDB_API_KEY=...
+# 2. Baixe e converta para WebP (pula o que já existe; --force renova tudo):
+pnpm --filter @ingresso/web posters:sync [--force]
+# 3. Remover o cache: apague apps/web/public/posters/*.webp (+ tmdb-logo.svg)
+```
+
+Sem `TMDB_API_KEY` o script recusa com erro explícito; sem o logo oficial, os
+pôsteres nem são exibidos (atribuição incompleta = fallback). Detalhes em
+`apps/web/scripts/sync-posters.ts`.
 
 ## Testes
 

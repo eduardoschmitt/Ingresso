@@ -10,6 +10,9 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1).default('postgres://ingresso:ingresso@localhost:5432/ingresso'),
   // Temporary hold duration for seat reservations, in whole minutes.
   HOLD_MINUTES: z.coerce.number().int().min(1).max(1440).default(5),
+  // Browser-facing origins allowed to read the API (CORS). Comma-separated;
+  // the web dev server and preview run on :4321 by default.
+  CORS_ORIGIN: z.string().min(1).default('http://localhost:4321'),
 });
 
 export type Env = z.infer<typeof envSchema>;

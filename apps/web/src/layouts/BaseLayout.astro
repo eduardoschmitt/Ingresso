@@ -1,5 +1,6 @@
 ---
 import ApiStatus from '../components/ApiStatus';
+import { tmdbAttributionComplete } from '../lib/posters.js';
 import '../styles/global.css';
 
 type Props = {
@@ -54,6 +55,27 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
           </p>
           <ApiStatus client:load />
         </div>
+        {
+          tmdbAttributionComplete() && (
+            <p class="mt-4 flex items-center gap-3 font-mono text-[11px] leading-relaxed text-white/40">
+              <img
+                src="/tmdb-logo.svg"
+                alt="TMDB"
+                width="92"
+                height="12"
+                loading="lazy"
+                decoding="async"
+              />
+              <span>
+                This product uses TMDB and the TMDB APIs but is not endorsed, certified, or
+                otherwise approved by TMDB.{' '}
+                <a class="underline underline-offset-2" href="https://www.themoviedb.org">
+                  themoviedb.org
+                </a>
+              </span>
+            </p>
+          )
+        }
       </footer>
     </div>
   </body>

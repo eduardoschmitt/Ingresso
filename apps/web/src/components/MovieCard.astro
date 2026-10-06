@@ -2,6 +2,7 @@
 import type { MovieDto } from '@ingresso/shared';
 
 import PosterFallback from './PosterFallback.astro';
+import { posterUrl } from '../lib/posters.js';
 
 type Props = {
   movie: MovieDto;
@@ -9,19 +10,37 @@ type Props = {
 
 const { movie } = Astro.props;
 const displayTitle = movie.titlePtBr ?? movie.title;
+// Build-time only: missing file (or incomplete TMDB attribution) → fallback.
+const poster = posterUrl(movie.id);
 ---
 
 <a
   href={`/filmes/${movie.id}`}
-  class="group block border border-white/10 bg-white/[0.02] transition-colors hover:border-ingresso/60 focus-visible:border-signal"
+  class="group block border border-white/10 bg-white/[0.02] transition-all duration-200 hover:-translate-y-1 hover:border-ingresso/60 hover:shadow-[0_8px_30px_rgb(225_6_0/0.15)] focus-visible:border-signal"
   aria-label={`Ver detalhes de ${displayTitle}`}
 >
-  <PosterFallback movie={movie} />
+  {
+    poster !== null ? (
+      <img
+        src={poster}
+        alt={`Cartaz de ${displayTitle}`}
+        width="500"
+        height="750"
+        loading="lazy"
+        decoding="async"
+        class="aspect-[2/3] w-full object-cover"
+      />
+    ) : (
+      <PosterFallback movie={movie} />
+    )
+  }
   <div class="p-4">
-    <h2 class="font-display text-lg font-bold leading-snug group-hover:text-white">
+    <h2
+      class="font-display text-lg font-bold leading-snug tracking-tight transition-colors group-hover:text-white"
+    >
       {displayTitle}
     </h2>
-    <p class="mt-1 font-mono text-xs text-white/50">
+    <p class="mt-1.5 font-mono text-xs leading-relaxed text-white/50">
       {movie.title} · {movie.releaseYear}
       {movie.durationMinutes !== null ? ` · ${movie.durationMinutes} min` : ''}
     </p>

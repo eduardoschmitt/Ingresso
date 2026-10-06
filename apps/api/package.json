@@ -16,6 +16,7 @@
     "load:setup": "tsx src/db/load-setup.ts"
   },
   "dependencies": {
+    "@fastify/cors": "^11.3.0",
     "@ingresso/shared": "workspace:*",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.44.0",

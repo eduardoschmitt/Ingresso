@@ -1,3 +1,4 @@
+import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance } from 'fastify';
 
 import { registerCatalogRoutes } from './catalog/routes.js';
@@ -39,6 +40,14 @@ export function buildApp(deps: AppDeps = {}): FastifyInstance {
     metrics.watchPool(pool);
   }
   metrics.registerHttpHooks(app);
+
+  // Restricted CORS so browser islands (web dev/preview origins) can read
+  // the API. No wildcard: only explicitly configured origins are reflected.
+  // Queued before route registration; Fastify resolves it at ready/listen.
+  const allowedOrigins = env.CORS_ORIGIN.split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+  void app.register(cors, { origin: allowedOrigins });
 
   registerErrorHandler(app);
 
