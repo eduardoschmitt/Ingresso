@@ -34,3 +34,6 @@ apps/web/public/tmdb-logo.svg
 # OS artifacts
 .DS_Store
 Thumbs.db
+
+# Local agent instructions (referenced in docs, intentionally unpublished)
+AGENTS.md

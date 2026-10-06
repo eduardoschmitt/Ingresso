@@ -51,7 +51,7 @@ export function buildApp(deps: AppDeps = {}): FastifyInstance {
     .filter((origin) => origin.length > 0);
   void app.register(cors, {
     origin: allowedOrigins,
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+    methods: ['GET', 'HEAD', 'POST', 'DELETE'],
   });
 
   registerErrorHandler(app);

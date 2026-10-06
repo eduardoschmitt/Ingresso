@@ -5,6 +5,8 @@ import { pathToFileURL } from 'node:url';
 import type { Db } from './client.js';
 import { createDb, createPool } from './client.js';
 import { auditoriums, cinemas, movies, screenings, seats } from './schema.js';
+import { loadEnv } from '../env.js';
+import { assertLocalDatabaseUrl } from './guards.js';
 
 // Deterministic, idempotent seed (Phase 1).
 // - Fixed dataset: same input on every run, no randomness, no external APIs.
@@ -316,7 +318,9 @@ const invokedAsCli =
   process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (invokedAsCli) {
-  const pool = createPool();
+  const { DATABASE_URL } = loadEnv();
+  assertLocalDatabaseUrl(DATABASE_URL, 'db:seed');
+  const pool = createPool(DATABASE_URL);
   try {
     await runSeed(createDb(pool));
   } finally {

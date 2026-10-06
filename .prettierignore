@@ -7,3 +7,5 @@ pnpm-lock.yaml
 .env.example
 # Pre-existing prose, kept byte-identical (only the project name was fixed).
 AGENTS.md
+# SPDX license text has no Prettier parser; kept verbatim.
+LICENSE

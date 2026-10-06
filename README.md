@@ -17,13 +17,13 @@ O projeto explora problemas reais de engenharia de software, como concorrência,
 
 - Catálogo de filmes com páginas individuais.
 - Consulta de cinemas e sessões por data.
+- Mapa interativo de assentos com disponibilidade em tempo real.
 - API de reservas com bloqueio temporário de assentos.
+- Criação, consulta, expiração e cancelamento de reservas pela interface.
 - Controle de concorrência para impedir reservas duplicadas.
 - Idempotência nas operações de reserva.
 - Monitoramento de requisições, latência e banco de dados.
-- Testes automatizados e simulações de alta demanda.
-
-A seleção visual de assentos e a finalização de reservas pela interface ainda estão em desenvolvimento.
+- Testes automatizados (Vitest + Playwright) e simulações de alta demanda (k6).
 
 ## Executando localmente
 
@@ -105,16 +105,24 @@ pôsteres nem são exibidos (atribuição incompleta = fallback). Detalhes em
 Os testes de integração utilizam PostgreSQL real para validar regras de reserva, expiração, idempotência e concorrência.
 
 ```bash
-pnpm test
+pnpm test         # Vitest (API + frontend)
+pnpm test:e2e     # Playwright (navegador real, banco dedicado ingresso_e2e)
 ```
 
 Os testes de carga são executados com k6 em um banco isolado, permitindo observar o comportamento da API sob diferentes níveis de demanda.
 
 As instruções estão em [`tests/load/README.md`](tests/load/README.md).
 
+## Segurança (uso local)
+
+Este é um projeto educacional para execução local — **não exponha a API diretamente à internet**:
+
+- A API não possui autenticação, autorização ou rate limiting. Qualquer pessoa com um ID de reserva pode consultá-la ou cancelá-la; qualquer cliente pode segurar assentos temporariamente.
+- O CORS permite apenas origens locais configuradas (`CORS_ORIGIN`); `/metrics` não tem autenticação.
+- Variáveis têm padrões locais seguros; nunca commite `.env` ou segredos.
+
 ## Documentação
 
-- [`AGENTS.md`](AGENTS.md) — convenções de desenvolvimento.
 - [`docs/adr/`](docs/adr/) — decisões arquiteturais.
 - [`docs/architecture/observability.md`](docs/architecture/observability.md) — métricas e monitoramento.
 - [`docs/experiments/phase-2-baseline.md`](docs/experiments/phase-2-baseline.md) — experimentos e resultados de desempenho.

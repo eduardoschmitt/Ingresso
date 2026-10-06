@@ -8,6 +8,7 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Client } from 'pg';
 
 import { loadEnv } from '../env.js';
+import { assertLocalDatabaseUrl } from './guards.js';
 
 /** Absolute path of the drizzle migrations folder, independent of CWD. */
 export function migrationsFolder(): string {
@@ -28,5 +29,7 @@ const invokedAsCli =
   process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (invokedAsCli) {
-  await runMigrations(loadEnv().DATABASE_URL);
+  const { DATABASE_URL } = loadEnv();
+  assertLocalDatabaseUrl(DATABASE_URL, 'db:migrate');
+  await runMigrations(DATABASE_URL);
 }

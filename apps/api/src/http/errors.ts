@@ -53,13 +53,36 @@ export function registerErrorHandler(app: FastifyInstance): void {
         ? (err as { statusCode: number }).statusCode
         : 500;
     if (statusCode >= 500) {
-      app.log.error(err);
+      // Sanitized stderr log: error class + driver code only, never messages
+      // (which may embed SQL, params, or connection details). The client
+      // always receives the generic body below.
+      const code =
+        typeof (err as { code?: unknown }).code === 'string'
+          ? (err as { code: string }).code
+          : 'unknown';
+      console.error(
+        JSON.stringify({
+          scope: 'api-error',
+          error: err instanceof Error ? err.constructor.name : typeof err,
+          code,
+        }),
+      );
       const body: ErrorBody = { error: { code: 'internal_error', message: 'Unexpected error' } };
       void reply.code(500).send(body);
       return;
     }
+    // Echo messages only for Fastify's own client errors (FST_*); anything
+    // else becomes generic so library internals never leak.
+    const fastifyCode =
+      typeof (err as { code?: unknown }).code === 'string' ? (err as { code: string }).code : null;
     const body: ErrorBody = {
-      error: { code: 'bad_request', message: err instanceof Error ? err.message : 'Bad request' },
+      error: {
+        code: 'bad_request',
+        message:
+          fastifyCode !== null && fastifyCode.startsWith('FST_') && err instanceof Error
+            ? err.message
+            : 'Bad request',
+      },
     };
     void reply.code(statusCode).send(body);
   });
