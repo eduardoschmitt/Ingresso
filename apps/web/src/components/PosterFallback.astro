@@ -1,0 +1,28 @@
+---
+import type { MovieDto } from '@ingresso/shared';
+
+type Props = {
+  movie: MovieDto;
+};
+
+const { movie } = Astro.props;
+const displayTitle = movie.titlePtBr ?? movie.title;
+---
+
+<div
+  role="img"
+  aria-label={`Cartaz tipográfico de ${displayTitle}`}
+  class="poster-fallback flex aspect-[2/3] w-full flex-col justify-between overflow-hidden p-4"
+>
+  <p class="font-mono text-xs uppercase tracking-widest text-white/60">{movie.releaseYear}</p>
+  <div>
+    <p class="font-display text-2xl font-black uppercase leading-tight">{displayTitle}</p>
+    {
+      movie.genre !== null && (
+        <p class="mt-2 inline-block border border-white/20 px-2 py-0.5 font-mono text-[11px] uppercase tracking-widest text-white/70">
+          {movie.genre}
+        </p>
+      )
+    }
+  </div>
+</div>

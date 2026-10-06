@@ -1,0 +1,60 @@
+---
+import ApiStatus from '../components/ApiStatus';
+import '../styles/global.css';
+
+type Props = {
+  title: string;
+  description?: string;
+};
+
+const { title, description = 'Ingresso — plataforma fictícia de ingressos de cinema.' } =
+  Astro.props;
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title} — Ingresso</title>
+  </head>
+  <body class="scanlines font-sans antialiased">
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
+      <header class="flex items-center justify-between border-b border-white/10 pb-5">
+        <a
+          href="/"
+          class="font-display text-xl font-bold uppercase tracking-[0.3em]"
+          aria-label="Ingresso — página inicial"
+        >
+          Ingresso<span class="text-ingresso">.</span>
+        </a>
+        <nav aria-label="Navegação principal">
+          <ul class="flex items-center gap-6 font-mono text-xs uppercase text-white/60">
+            <li>
+              <a class="transition-colors hover:text-white" href="/"> Filmes </a>
+            </li>
+            <li class="hidden sm:list-item">
+              <a class="transition-colors hover:text-white" href={`${apiUrl}/health`}> API </a>
+            </li>
+          </ul>
+        </nav>
+      </header>
+
+      <main class="flex-1 py-10">
+        <slot />
+      </main>
+
+      <footer class="border-t border-white/10 pt-6">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p class="font-mono text-xs text-white/40">
+            Ingresso — estudo de engenharia. Sem ingressos reais à venda.
+          </p>
+          <ApiStatus client:load />
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

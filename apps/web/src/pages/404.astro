@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export const prerender = true;
+---
+
+<BaseLayout title="Página não encontrada">
+  <section aria-labelledby="not-found-title" class="py-16 text-center">
+    <p class="font-mono text-xs uppercase tracking-widest text-white/40">● Fora de quadro</p>
+    <h1 id="not-found-title" class="font-display mt-4 text-6xl font-black uppercase">
+      404<span class="text-ingresso">.</span>
+    </h1>
+    <p class="mx-auto mt-4 max-w-md text-white/60">
+      Esta sala não existe. Volte ao catálogo e escolha outro filme.
+    </p>
+    <a
+      href="/"
+      class="mt-8 inline-block border border-white/20 px-6 py-3 font-mono text-xs uppercase tracking-widest transition-colors hover:border-ingresso hover:text-white"
+    >
+      Voltar ao catálogo
+    </a>
+  </section>
+</BaseLayout>

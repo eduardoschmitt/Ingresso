@@ -1,0 +1,80 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PosterFallback from '../../components/PosterFallback.astro';
+import ScreeningPicker from '../../components/ScreeningPicker';
+import { listAllMovies } from '../../lib/api';
+
+export const prerender = true;
+
+// Every catalog movie becomes a static page at build time; unknown ids 404
+// (adjustment 2). The movie travels via props — no per-page fetch needed.
+export async function getStaticPaths() {
+  const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+  const movies = await listAllMovies(apiUrl);
+  return movies.map((movie) => ({ params: { id: String(movie.id) }, props: { movie } }));
+}
+
+const { movie } = Astro.props;
+const displayTitle = movie.titlePtBr ?? movie.title;
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+
+function formatDuration(minutes: number | null): string {
+  if (minutes === null) return 'Duração não informada';
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return hours > 0 ? `${hours}h${rest > 0 ? ` ${rest}min` : ''}` : `${rest}min`;
+}
+---
+
+<BaseLayout title={displayTitle} description={movie.synopsis ?? `Detalhes de ${displayTitle}.`}>
+  <a
+    href="/"
+    class="font-mono text-xs uppercase tracking-widest text-white/50 transition-colors hover:text-white"
+  >
+    ← Voltar ao catálogo
+  </a>
+
+  <article class="mt-6 grid grid-cols-1 gap-8 md:grid-cols-[280px_1fr]">
+    <PosterFallback movie={movie} />
+    <div>
+      <p class="font-mono text-sm text-white/50">
+        {movie.releaseYear}
+        {movie.genre !== null ? ` · ${movie.genre}` : ''}
+      </p>
+      <h1 class="font-display mt-2 text-4xl font-black uppercase tracking-tight sm:text-5xl">
+        {displayTitle}
+      </h1>
+
+      <dl class="mt-8 space-y-3 border-t border-white/10 pt-6 text-[15px]">
+        <div class="flex gap-3">
+          <dt class="w-36 shrink-0 font-mono text-xs uppercase tracking-widest text-white/40">
+            Título original
+          </dt>
+          <dd>{movie.title}</dd>
+        </div>
+        <div class="flex gap-3">
+          <dt class="w-36 shrink-0 font-mono text-xs uppercase tracking-widest text-white/40">
+            Duração
+          </dt>
+          <dd>{formatDuration(movie.durationMinutes)}</dd>
+        </div>
+      </dl>
+
+      {
+        movie.synopsis !== null && (
+          <p class="mt-6 max-w-2xl text-lg leading-relaxed text-white/75">{movie.synopsis}</p>
+        )
+      }
+
+      <section aria-labelledby="sessoes-title" class="mt-12 border-t border-white/10 pt-8">
+        <p class="font-mono text-xs uppercase tracking-widest text-white/40">Programação ao vivo</p>
+        <h2 id="sessoes-title" class="font-display mt-2 text-2xl font-black uppercase">
+          Sessões<span class="text-ingresso">.</span>
+        </h2>
+        <div class="mt-6">
+          <ScreeningPicker client:load movieId={movie.id} apiUrl={apiUrl} />
+        </div>
+      </section>
+    </div>
+  </article>
+</BaseLayout>

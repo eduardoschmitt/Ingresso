@@ -1,5 +1,6 @@
 packages:
   - 'apps/*'
+  - 'packages/*'
 
 # Dependency postinstall scripts are blocked by default (strictDepBuilds).
 # These build steps are reviewed and required: esbuild (Astro/Vite) and

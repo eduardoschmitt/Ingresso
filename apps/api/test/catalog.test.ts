@@ -105,6 +105,37 @@ describe('catalog endpoints', () => {
     expect(typeof body.data[0]?.movieTitle).toBe('string');
   });
 
+  it('filters screenings by movie and cinema', async () => {
+    const first = await createScreeningFixture(testDb(pool));
+    const second = await createScreeningFixture(testDb(pool));
+
+    const byMovie = await app.inject({
+      method: 'GET',
+      url: `/screenings?movieId=${first.movieId}`,
+    });
+    expect(byMovie.statusCode).toBe(200);
+    const byMovieBody = byMovie.json() as { data: { id: number }[]; total: number };
+    expect(byMovieBody.total).toBe(1);
+    expect(byMovieBody.data.map((s) => s.id)).toEqual([first.screeningId]);
+
+    const byCinema = await app.inject({
+      method: 'GET',
+      url: `/screenings?cinemaId=${second.cinemaId}`,
+    });
+    expect(byCinema.statusCode).toBe(200);
+    expect((byCinema.json() as { total: number }).total).toBe(1);
+
+    const both = await app.inject({
+      method: 'GET',
+      url: `/screenings?movieId=${first.movieId}&cinemaId=${second.cinemaId}`,
+    });
+    expect(both.statusCode).toBe(200);
+    expect((both.json() as { total: number }).total).toBe(0);
+
+    const invalid = await app.inject({ method: 'GET', url: '/screenings?movieId=abc' });
+    expect(invalid.statusCode).toBe(400);
+  });
+
   it('reflects authoritative reservation state in the seat map', async () => {
     const fixture = await createScreeningFixture(testDb(pool));
     const db = testDb(pool);

@@ -52,6 +52,32 @@ body {
   );
 }
 
+/* Cinematic vignette: fixed, non-interactive, purely decorative. */
+.vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgb(0 0 0 / 0.45) 100%);
+}
+
+/* Typographic poster fallback (no external images, ever). Layered CSS-only
+   texture: deep red gradient, analog noise via inline SVG turbulence, and a
+   top accent rule. Decorative — the accessible name comes from role="img". */
+.poster-fallback {
+  position: relative;
+  background: linear-gradient(160deg, #2a0a08 0%, #12090c 55%, #0b0b10 100%);
+  border-top: 3px solid var(--ingresso-red);
+}
+
+.poster-fallback::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E");
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

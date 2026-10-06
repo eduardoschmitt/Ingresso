@@ -1,5 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 
+import { z } from 'zod';
+
 import type { Db } from '../db/client.js';
 import { idParamSchema, paginationSchema } from '../http/pagination.js';
 import {
@@ -11,6 +13,11 @@ import {
   listMovies,
   listScreenings,
 } from './service.js';
+
+const screeningsQuerySchema = paginationSchema.extend({
+  movieId: z.coerce.number().int().positive().optional(),
+  cinemaId: z.coerce.number().int().positive().optional(),
+});
 
 export function registerCatalogRoutes(app: FastifyInstance, deps: { db: Db }): void {
   app.get('/movies', async (request) => {
@@ -33,9 +40,18 @@ export function registerCatalogRoutes(app: FastifyInstance, deps: { db: Db }): v
     return getCinema(deps.db, id);
   });
 
+  // Optional filters are additive: existing clients calling without them
+  // observe identical behavior (backward compatible).
   app.get('/screenings', async (request) => {
-    const pagination = paginationSchema.parse(request.query);
-    return listScreenings(deps.db, pagination);
+    const query = screeningsQuerySchema.parse(request.query);
+    return listScreenings(
+      deps.db,
+      { page: query.page, pageSize: query.pageSize },
+      {
+        movieId: query.movieId,
+        cinemaId: query.cinemaId,
+      },
+    );
   });
 
   app.get('/screenings/:id', async (request) => {

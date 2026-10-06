@@ -13,6 +13,9 @@ import {
 } from '../db/schema.js';
 import { badRequest, conflict, notFound } from '../http/errors.js';
 import type { ReservationObserver } from '../observability/metrics.js';
+import type { ReservationDto } from '@ingresso/shared';
+
+export type { ReservationDto } from '@ingresso/shared';
 
 // Transactional seat holds (Phase 1).
 //
@@ -35,15 +38,6 @@ export const createReservationSchema = z.object({
   seatIds: z.array(z.number().int().positive()).min(1).max(MAX_SEATS_PER_RESERVATION),
   idempotencyKey: z.string().min(1).max(200),
 });
-
-export type ReservationDto = {
-  id: number;
-  screeningId: number;
-  seatIds: number[];
-  status: ReservationStatus;
-  expiresAt: string;
-  idempotencyKey: string;
-};
 
 export type ReservationResult = ReservationDto & { created: boolean };
 

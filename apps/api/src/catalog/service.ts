@@ -12,50 +12,28 @@ import {
   seats,
 } from '../db/schema.js';
 import { conflict, notFound } from '../http/errors.js';
-import { paged, type Paged, type Pagination } from '../http/pagination.js';
+import { paged, type Pagination } from '../http/pagination.js';
+import type {
+  CinemaDetailDto,
+  CinemaDto,
+  MovieDto,
+  Paged,
+  ScreeningDto,
+  SeatMapDto,
+} from '@ingresso/shared';
 
 type Queryable = Db | DbTx;
 
-export type MovieDto = {
-  id: number;
-  title: string;
-  titlePtBr: string | null;
-  releaseYear: number;
-  durationMinutes: number | null;
-  synopsis: string | null;
-  genre: string | null;
-  posterUrl: string | null;
-};
-
-export type CinemaDto = {
-  id: number;
-  name: string;
-  location: string;
-};
-
-export type CinemaDetailDto = CinemaDto & {
-  auditoriums: { id: number; name: string; capacity: number }[];
-};
-
-export type ScreeningDto = {
-  id: number;
-  movieId: number;
-  movieTitle: string;
-  auditoriumId: number;
-  auditoriumName: string;
-  cinemaId: number;
-  cinemaName: string;
-  startsAt: string;
-  endsAt: string;
-  priceCents: number;
-};
-
-export type SeatStatus = 'available' | 'held' | 'sold';
-
-export type SeatMapDto = {
-  screeningId: number;
-  seats: { id: number; row: string; number: number; status: SeatStatus }[];
-};
+// Re-exported so existing import sites keep working; single definition lives
+// in @ingresso/shared.
+export type {
+  CinemaDetailDto,
+  CinemaDto,
+  MovieDto,
+  ScreeningDto,
+  SeatMapDto,
+  SeatStatus,
+} from '@ingresso/shared';
 
 export async function listMovies(db: Queryable, pagination: Pagination): Promise<Paged<MovieDto>> {
   const rows = await db
@@ -173,20 +151,47 @@ function toScreeningDto(row: ScreeningRow): ScreeningDto {
   };
 }
 
+export type ScreeningFilters = {
+  movieId?: number;
+  cinemaId?: number;
+};
+
 export async function listScreenings(
   db: Queryable,
   pagination: Pagination,
+  filters: ScreeningFilters = {},
 ): Promise<Paged<ScreeningDto>> {
+  const conditions = [];
+  if (filters.movieId !== undefined) conditions.push(eq(screenings.movieId, filters.movieId));
+  if (filters.cinemaId !== undefined) conditions.push(eq(auditoriums.cinemaId, filters.cinemaId));
+  const where = conditions.length > 0 ? and(...conditions) : undefined;
+
   const rows = await db
     .select(screeningSelection)
     .from(screenings)
     .innerJoin(movies, eq(screenings.movieId, movies.id))
     .innerJoin(auditoriums, eq(screenings.auditoriumId, auditoriums.id))
     .innerJoin(cinemas, eq(auditoriums.cinemaId, cinemas.id))
+    .where(where)
     .orderBy(asc(screenings.startsAt), asc(screenings.id))
     .limit(pagination.pageSize)
     .offset((pagination.page - 1) * pagination.pageSize);
-  const [{ total }] = await db.select({ total: count() }).from(screenings);
+  // The total honors the same filters (cinemaId needs the auditoriums join).
+  let counted: Promise<{ total: number }[]>;
+  if (filters.cinemaId === undefined) {
+    counted =
+      where === undefined
+        ? db.select({ total: count() }).from(screenings)
+        : db.select({ total: count() }).from(screenings).where(where);
+  } else {
+    counted = db
+      .select({ total: count() })
+      .from(screenings)
+      .innerJoin(auditoriums, eq(screenings.auditoriumId, auditoriums.id))
+      .where(where);
+  }
+  const [{ total }] = await counted;
+  if (total === undefined) throw new Error('screening count returned no row');
   return paged(rows.map(toScreeningDto), total, pagination);
 }
 

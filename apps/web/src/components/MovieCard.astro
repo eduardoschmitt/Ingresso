@@ -1,0 +1,29 @@
+---
+import type { MovieDto } from '@ingresso/shared';
+
+import PosterFallback from './PosterFallback.astro';
+
+type Props = {
+  movie: MovieDto;
+};
+
+const { movie } = Astro.props;
+const displayTitle = movie.titlePtBr ?? movie.title;
+---
+
+<a
+  href={`/filmes/${movie.id}`}
+  class="group block border border-white/10 bg-white/[0.02] transition-colors hover:border-ingresso/60 focus-visible:border-signal"
+  aria-label={`Ver detalhes de ${displayTitle}`}
+>
+  <PosterFallback movie={movie} />
+  <div class="p-4">
+    <h2 class="font-display text-lg font-bold leading-snug group-hover:text-white">
+      {displayTitle}
+    </h2>
+    <p class="mt-1 font-mono text-xs text-white/50">
+      {movie.title} · {movie.releaseYear}
+      {movie.durationMinutes !== null ? ` · ${movie.durationMinutes} min` : ''}
+    </p>
+  </div>
+</a>

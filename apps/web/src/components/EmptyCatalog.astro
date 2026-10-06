@@ -1,0 +1,18 @@
+---
+
+---
+
+<section
+  aria-labelledby="empty-catalog-title"
+  class="border border-white/10 bg-white/[0.02] p-10 text-center"
+>
+  <p class="font-mono text-xs uppercase tracking-widest text-white/40">● Sem sinal</p>
+  <h1 id="empty-catalog-title" class="font-display mt-4 text-3xl font-black uppercase">
+    Nenhum filme em cartaz<span class="text-ingresso">.</span>
+  </h1>
+  <p class="mx-auto mt-4 max-w-md text-white/60">
+    O banco de dados foi renderizado sem filmes. Execute as seeds do catálogo e reconstrua a página.
+  </p>
+  <pre
+    class="mx-auto mt-6 inline-block border border-white/10 bg-black/40 px-4 py-2 font-mono text-xs text-white/70">pnpm --filter @ingresso/api db:seed</pre>
+</section>

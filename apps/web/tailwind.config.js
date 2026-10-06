@@ -6,6 +6,9 @@ export default {
       colors: {
         screen: '#0b0b10',
         phosphor: '#e8e6df',
+        // Focus/highlight amber. Named `signal` to avoid clobbering the
+        // default amber palette scale (still used by ApiStatus).
+        signal: '#ffb454',
         ingresso: {
           DEFAULT: '#e10600',
           dim: '#8f0600',
